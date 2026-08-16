@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 
+from app.api.routes import router
+
+
 app = FastAPI(
     title="PayFlux API",
     description="Backend API for the PayFlux merchant-support agent.",
     version="0.1.0",
 )
+
+app.include_router(router)
 
 
 @app.get("/")
