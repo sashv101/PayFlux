@@ -1,11 +1,14 @@
 import pytest
 
+from app.data.database import get_connection
+
 from app.data.seed_data import seed_small_dataset
 from app.tools.support_tools import (
     lookup_merchant,
     lookup_payment,
     lookup_settlement,
     lookup_ticket,
+    retrieve_policy,
 )
 
 
@@ -77,3 +80,33 @@ def test_lookup_tools_return_none_for_missing_records(
     missing_identifier: str,
 ) -> None:
     assert lookup_function(missing_identifier) is None
+
+
+def test_retrieve_policy_returns_approved_document() -> None:
+    policy = retrieve_policy("settlement_delayed")
+
+    assert policy is not None
+    assert policy["category"] == "settlement_delayed"
+    assert policy["source"] == "settlement_policy.md"
+    assert "status is `delayed`" in policy["content"]
+
+
+def test_retrieve_policy_rejects_unknown_category() -> None:
+    policy = retrieve_policy("delete_database")
+
+    assert policy is None
+
+
+def test_all_ticket_categories_have_policies() -> None:
+    with get_connection() as connection:
+        categories = connection.execute(
+            """
+            SELECT DISTINCT category
+            FROM tickets
+            ORDER BY category
+            """
+        ).fetchall()
+
+    for row in categories:
+        policy = retrieve_policy(row["category"])
+        assert policy is not None

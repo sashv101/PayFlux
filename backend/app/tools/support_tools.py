@@ -1,5 +1,15 @@
 from app.data.database import get_connection
+from pathlib import Path
 
+BACKEND_DIRECTORY = Path(__file__).resolve().parents[2]
+KNOWLEDGE_DIRECTORY = BACKEND_DIRECTORY / "knowledge"
+
+POLICY_FILES = {
+    "settlement_delayed": "settlement_policy.md",
+    "payment_failed": "payment_failure_policy.md",
+    "kyc_review": "kyc_policy.md",
+    "api_integration": "api_integration_policy.md",
+}
 
 def lookup_ticket(ticket_id: str) -> dict | None:
     """
@@ -134,3 +144,31 @@ def lookup_settlement(settlement_id: str) -> dict | None:
     )
 
     return settlement_data
+
+
+def retrieve_policy(category: str) -> dict | None:
+    """
+    Retrieve the approved PayFlux policy for a support category.
+
+    Use this tool after identifying the ticket category and gathering
+    operational evidence. The policy determines which response or
+    escalation is permitted.
+    """
+
+    file_name = POLICY_FILES.get(category)
+
+    if file_name is None:
+        return None
+
+    policy_path = KNOWLEDGE_DIRECTORY / file_name
+
+    if not policy_path.exists():
+        return None
+
+    content = policy_path.read_text(encoding="utf-8")
+
+    return {
+        "category": category,
+        "source": file_name,
+        "content": content,
+    }
