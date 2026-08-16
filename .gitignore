@@ -1,0 +1,29 @@
+# Environment variables and secrets
+.env
+
+# Python virtual environment
+.venv/
+backend/.venv/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# React and Node.js
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# VS Code
+.vscode/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
