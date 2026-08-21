@@ -5,6 +5,7 @@ import os
 from agents import Agent, Runner
 from agents.items import ToolCallItem, ToolCallOutputItem
 from dotenv import load_dotenv
+from app.workflows.investigation_result import InvestigationResult
 
 from app.integrations.openai_tools import (
     lookup_merchant_tool,
@@ -61,6 +62,18 @@ State the next permitted support action.
 
 ## Approval or execution status
 Clearly state that the recommendation has not yet been executed.
+
+APPROVAL AND EXECUTION RULES:
+
+- Set approval_required to true when recommended_action is
+  escalate_settlement or route_compliance_review.
+- Set approval_required to false for all other recommended actions.
+- Set action_executed to false because this agent currently has no
+  tools that can execute or approve an operational action.
+- Never claim that an escalation, compliance review, refund, retry,
+  or other operational action has already been completed.
+- The merchant_response may say that escalation is recommended or
+  pending approval, but must not say that it has already been executed.
 """,
     tools=[
         lookup_ticket_tool,
@@ -69,6 +82,7 @@ Clearly state that the recommendation has not yet been executed.
         lookup_settlement_tool,
         retrieve_policy_tool,
     ],
+     output_type=InvestigationResult,
 )
 
 def get_raw_field(raw_item, field_name: str):
@@ -148,7 +162,10 @@ async def main() -> None:
     display_tool_trace(result)
 
     print("\nFINAL AGENT OUTPUT:\n")
-    print(result.final_output)
+
+    structured_output = result.final_output
+    final_output = structured_output.model_dump_json()
+    print(final_output.model_dump_json(indent=2))
 
 
 if __name__ == "__main__":

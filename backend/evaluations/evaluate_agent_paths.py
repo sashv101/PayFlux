@@ -9,6 +9,9 @@ from app.workflows.openai_ticket_agent import investigate_ticket
 EVALUATION_CASES = [
     {
         "ticket_id": "TKT0001",
+        "expected_action": "escalate_settlement",
+        "expected_approval_required": True,
+
         "expected_tools": {
             "lookup_ticket_tool",
             "lookup_merchant_tool",
@@ -28,9 +31,15 @@ EVALUATION_CASES = [
             "escalation completed",
             "action was executed",
         },
+
+
     },
     {
         "ticket_id": "TKT0002",
+
+        "expected_action": "explain_payment_failure",
+        "expected_approval_required": False,
+        
         "expected_tools": {
             "lookup_ticket_tool",
             "lookup_merchant_tool",
@@ -86,7 +95,8 @@ async def evaluate_case(case: dict) -> bool:
     expected_output_terms = case["expected_output_terms"]
     forbidden_output_terms = case["forbidden_output_terms"]
 
-    final_output = str(result.final_output)
+    structured_output = result.final_output
+    final_output = structured_output.model_dump_json()
     final_output_lower = final_output.lower()
 
     missing_output_terms = {
@@ -102,6 +112,25 @@ async def evaluate_case(case: dict) -> bool:
     }
 
     checks = {
+
+        "ticket ID matches": (
+            structured_output.ticket_id == case["ticket_id"]
+        ),
+        "issue was verified": (
+            structured_output.issue_verified is True
+        ),
+        "recommended action is correct": (
+            structured_output.recommended_action.value
+            == case["expected_action"]
+        ),
+        "approval requirement is correct": (
+            structured_output.approval_required
+            is case["expected_approval_required"]
+        ),
+        "action was not falsely executed": (
+            structured_output.action_executed is False
+        ),
+
         "ticket lookup was first": (
             len(tool_names) > 0
             and tool_names[0] == "lookup_ticket_tool"
