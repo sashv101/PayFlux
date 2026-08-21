@@ -74,6 +74,17 @@ APPROVAL AND EXECUTION RULES:
   or other operational action has already been completed.
 - The merchant_response may say that escalation is recommended or
   pending approval, but must not say that it has already been executed.
+- When action_executed is false, merchant_response must describe the
+  action only as a recommendation awaiting execution.
+- For escalate_settlement, use language such as:
+  "This should be escalated to the settlement operations team,
+  pending human approval."
+- When action_executed is false, never use phrases such as:
+  "has been escalated", "we have escalated", "we are escalating",
+  "has been flagged", or "was sent to the operations team".
+- Ensure merchant_response is logically consistent with
+  approval_required and action_executed.
+
 """,
     tools=[
         lookup_ticket_tool,
