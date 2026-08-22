@@ -268,6 +268,19 @@ def clear_existing_data() -> None:
     """
 
     with get_connection() as connection:
+
+        action_table_exists = connection.execute(
+            """
+            SELECT 1
+            FROM sqlite_master
+            WHERE type = 'table'
+              AND name = 'agent_actions'
+            """
+        ).fetchone()
+
+        if action_table_exists is not None:
+            connection.execute("DELETE FROM agent_actions")
+
         connection.execute("DELETE FROM tickets")
         connection.execute("DELETE FROM settlements")
         connection.execute("DELETE FROM payments")
