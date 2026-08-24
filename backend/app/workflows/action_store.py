@@ -176,6 +176,45 @@ def list_actions(
 
     return [row_to_action(row) for row in rows]
 
+def find_reusable_action(
+    ticket_id: str,
+    action_type: ActionType,
+    target_id: str,
+) -> ProposedAction | None:
+    """
+    Find an existing non-failed action for the same ticket,
+    action type and target.
+
+    Rejected and failed actions may be proposed again.
+    Pending, approved or executed actions are reused.
+    """
+
+    initialize_action_store()
+
+    with get_connection() as connection:
+        row = connection.execute(
+            """
+            SELECT *
+            FROM agent_actions
+            WHERE ticket_id = ?
+              AND action_type = ?
+              AND target_id = ?
+              AND status IN (
+                  'pending_approval',
+                  'approved',
+                  'executed'
+              )
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (
+                ticket_id,
+                action_type.value,
+                target_id,
+            ),
+        ).fetchone()
+
+    return row_to_action(row) if row is not None else None
 
 def decide_action(
     decision: ApprovalDecision,
