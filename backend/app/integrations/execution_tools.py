@@ -1,6 +1,7 @@
 from agents import function_tool
 
 from app.workflows.action_models import (
+    ActionExecutionOutcome,
     ActionStatus,
     ActionType,
 )
@@ -10,16 +11,14 @@ from app.workflows.action_store import (
 )
 
 
-@function_tool(needs_approval=True)
-def execute_settlement_escalation(
+def execute_settlement_escalation_action(
     action_id: str,
-) -> str:
+) -> ActionExecutionOutcome:
     """
-    Execute an approved settlement escalation.
+    Execute a database-approved settlement escalation.
 
-    The action must already exist in the PayFlux action store,
-    must represent a settlement escalation, and must have received
-    explicit human approval.
+    This trusted application function is shared by the FastAPI
+    layer and the Agents SDK tool wrapper.
     """
 
     action = get_action(action_id)
@@ -31,7 +30,7 @@ def execute_settlement_escalation(
 
     if action.action_type != ActionType.ESCALATE_SETTLEMENT:
         raise ValueError(
-            "This tool only executes settlement escalations."
+            "This executor only supports settlement escalations."
         )
 
     if action.status != ActionStatus.APPROVED:
@@ -45,10 +44,26 @@ def execute_settlement_escalation(
         f"{action.ticket_id}."
     )
 
-    outcome = record_execution(
+    return record_execution(
         action_id=action.action_id,
         execution_result=execution_message,
         succeeded=True,
+    )
+
+
+@function_tool(needs_approval=True)
+def execute_settlement_escalation(
+    action_id: str,
+) -> str:
+    """
+    Execute an approved settlement escalation.
+
+    The Agents SDK pauses this tool call for human review before
+    invoking the trusted application execution function.
+    """
+
+    outcome = execute_settlement_escalation_action(
+        action_id
     )
 
     return outcome.model_dump_json(indent=2)
