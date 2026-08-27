@@ -150,3 +150,18 @@ def test_rejected_action_cannot_execute():
     assert stored_action["status"] == "rejected"
     assert stored_action["executed_at"] is None
     assert stored_action["execution_result"] is None
+
+def test_cors_allows_local_frontend():
+    response = client.options(
+        "/agent/actions",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        response.headers["access-control-allow-origin"]
+        == "http://localhost:5173"
+    )
