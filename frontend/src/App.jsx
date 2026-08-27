@@ -182,12 +182,18 @@ function App() {
   <article>
     <h3>Investigation completed</h3>
 
-    <p>
-      Plan adherence:{" "}
-      {investigation.planned_investigation.plan_followed
-        ? "Passed"
-        : "Failed"}
-    </p>
+    <p
+  className={
+    investigation.planned_investigation.plan_followed
+      ? "status-badge status-passed"
+      : "status-badge status-failed"
+  }
+>
+  Plan adherence:{" "}
+  {investigation.planned_investigation.plan_followed
+    ? "Passed"
+    : "Failed"}
+</p>
 
     <p>
       {investigation.action_preparation.preparation_message}
@@ -242,7 +248,9 @@ function App() {
             <p>Action ID: {action.action_id}</p>
             <p>Ticket: {action.ticket_id}</p>
             <p>Target: {action.target_id}</p>
-            <p>Status: {action.status}</p>
+            <p className={`status-badge status-${action.status}`}>
+  {action.status.replaceAll("_", " ")}
+</p>
             <p>{action.reason}</p>
 
             {action.status === "pending_approval" && (
