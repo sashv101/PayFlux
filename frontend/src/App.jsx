@@ -12,6 +12,7 @@ import "./App.css";
 
 function App() {
   const [actions, setActions] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("");
   const [ticketId, setTicketId] = useState("TKT0001");
   const [investigation, setInvestigation] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,12 +21,12 @@ function App() {
   const [error, setError] = useState("");
 
 
-  async function loadActions() {
+  async function loadActions(status = statusFilter) {
     try {
       setLoading(true);
       setError("");
 
-      const data = await getActions();
+      const data = await getActions(status);
       setActions(data);
     } catch (requestError) {
       setError(requestError.message);
@@ -116,6 +117,12 @@ function App() {
     }
   }
 
+  async function handleStatusFilterChange(event) {
+    const nextStatus = event.target.value;
+
+    setStatusFilter(nextStatus);
+    await loadActions(nextStatus);
+}
 
   useEffect(() => {
     let cancelled = false;
@@ -220,16 +227,35 @@ function App() {
 
       <section>
         <div>
-          <h2>Agent actions</h2>
+        <h2>Agent actions</h2>
+
+        <div className="action-toolbar">
+          <label htmlFor="status-filter">Status</label>
+
+          <select
+            id="status-filter"
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+            disabled={loading}
+          >
+            <option value="">All actions</option>
+            <option value="pending_approval">
+              Pending approval
+            </option>
+            <option value="approved">Approved</option>
+            <option value="executed">Executed</option>
+            <option value="rejected">Rejected</option>
+          </select>
 
           <button
             type="button"
-            onClick={loadActions}
+            onClick={() => loadActions(statusFilter)}
             disabled={loading}
           >
-            {loading ? "Loading..." : "Refresh actions"}
+            {loading ? "Loading..." : "Refresh"}
           </button>
         </div>
+      </div>
 
         {error && (
           <p role="alert">
@@ -238,7 +264,11 @@ function App() {
         )}
 
         {!loading && !error && actions.length === 0 && (
-          <p>No agent actions are currently stored.</p>
+          <p className="empty-state">
+  {statusFilter
+    ? `No ${statusFilter.replaceAll("_", " ")} actions found.`
+    : "No agent actions are currently stored."}
+</p>
         )}
 
         {actions.map((action) => (
