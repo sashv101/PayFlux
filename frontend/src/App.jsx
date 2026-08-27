@@ -179,27 +179,37 @@ function App() {
         </form>
 
         {investigation && (
-          <article>
-            <h3>Investigation completed</h3>
+  <article>
+    <h3>Investigation completed</h3>
 
-            <p>
-              Plan adherence:{" "}
-              {investigation.plan_adherence
-                ? "Passed"
-                : "Failed"}
-            </p>
+    <p>
+      Plan adherence:{" "}
+      {investigation.planned_investigation.plan_followed
+        ? "Passed"
+        : "Failed"}
+    </p>
 
-            <p>{investigation.action_message}</p>
+    <p>
+      {investigation.action_preparation.preparation_message}
+    </p>
 
-            {investigation.action && (
-              <p>
-                Proposed action:{" "}
-                {investigation.action.action_id} (
-                {investigation.action.status})
-              </p>
-            )}
-          </article>
-        )}
+    {investigation.action_preparation.proposed_action && (
+      <p>
+        Proposed action:{" "}
+        {
+          investigation.action_preparation.proposed_action
+            .action_id
+        }{" "}
+        (
+        {
+          investigation.action_preparation.proposed_action
+            .status
+        }
+        )
+      </p>
+    )}
+  </article>
+)}
       </section>
 
       <section>
